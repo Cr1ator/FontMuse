@@ -1,12 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
-import { Pin } from "lucide-react";
+import { Pin, Clipboard } from "lucide-react";
 
 interface ControlsProps {
   searchText: string;
@@ -21,8 +21,6 @@ interface ControlsProps {
   setIsAlwaysOnTop: (isTop: boolean) => void;
 }
 
-const mainWindow = new WebviewWindow("main-window");
-
 export function Controls({
   searchText,
   setSearchText,
@@ -35,29 +33,60 @@ export function Controls({
   isAlwaysOnTop,
   setIsAlwaysOnTop,
 }: ControlsProps) {
+  const [isMonitoringEnabled, setIsMonitoringEnabled] = useState(true);
+
   useEffect(() => {
-    const checkClipboard = async () => {
+    let interval: NodeJS.Timeout | null = null;
+
+    const checkSelection = async () => {
       try {
-        const clipboardText = await invoke<string>("get_clipboard_text");
-        if (clipboardText && clipboardText !== previewText) {
-          setPreviewText(clipboardText);
+        const selectedText = await invoke<string>("get_selected_text");
+        if (
+          selectedText &&
+          selectedText.trim() !== "" &&
+          selectedText !== previewText
+        ) {
+          setPreviewText(selectedText.trim());
         }
       } catch (error) {
-        console.error("Failed to get clipboard text:", error);
+        console.error("Failed to get selected text:", error);
       }
     };
 
-    const interval = setInterval(checkClipboard, 1000);
-    return () => clearInterval(interval);
-  }, [previewText, setPreviewText]);
+    if (isMonitoringEnabled) {
+      interval = setInterval(checkSelection, 500);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [isMonitoringEnabled, previewText, setPreviewText]);
 
   const handleAlwaysOnTop = async () => {
     try {
+      console.log("handleAlwaysOnTop called, current state:", isAlwaysOnTop);
+
+      const window = await getCurrentWindow();
+      console.log("Got window instance:", window);
+
       const newState = !isAlwaysOnTop;
-      await mainWindow.setAlwaysOnTop(newState);
+      console.log("Setting new state to:", newState);
+
+      await window.setAlwaysOnTop(newState);
+      console.log("Always on top set successfully");
+
       setIsAlwaysOnTop(newState);
+      console.log("State updated");
     } catch (error) {
-      console.error("Failed to set always on top:", error);
+      console.error("Detailed error in setAlwaysOnTop:", error);
+      // Попробуем получить больше информации об ошибке
+      if (error instanceof Error) {
+        console.error("Error name:", error.name);
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
     }
   };
 
@@ -77,19 +106,40 @@ export function Controls({
             size="icon"
             onClick={handleAlwaysOnTop}
             className="w-10 h-10"
+            title={
+              isAlwaysOnTop ? "Disable always on top" : "Enable always on top"
+            }
           >
             <Pin className={isAlwaysOnTop ? "rotate-45" : ""} />
           </Button>
         </div>
 
+        {/* Rest of the component remains the same */}
         <div className="flex items-center gap-4">
           <Input
             type="text"
-            placeholder="Enter preview text..."
+            placeholder="Enter preview text... (or select text anywhere)"
             value={previewText}
             onChange={(e) => setPreviewText(e.target.value)}
             className="flex-1"
           />
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={isMonitoringEnabled}
+              onCheckedChange={setIsMonitoringEnabled}
+              id="text-monitoring"
+            />
+            <label
+              htmlFor="text-monitoring"
+              className="text-sm font-medium cursor-pointer"
+            >
+              <Clipboard
+                className={`h-4 w-4 ${
+                  isMonitoringEnabled ? "text-primary" : "text-muted-foreground"
+                }`}
+              />
+            </label>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">

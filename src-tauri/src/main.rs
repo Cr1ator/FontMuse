@@ -1,8 +1,13 @@
-// src-tauri/src/main.rs
 use std::path::PathBuf;
 use serde::{Serialize, Deserialize};
-use tauri::command;
 use std::fs;
+use windows::Win32::System::DataExchange::{
+    GetClipboardData, OpenClipboard, CloseClipboard, 
+    IsClipboardFormatAvailable
+};
+use windows::Win32::Foundation::HWND;
+
+const CF_UNICODETEXT: u32 = 13; // Windows constant for Unicode text format
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FontInfo {
@@ -11,7 +16,34 @@ pub struct FontInfo {
     is_system: bool,
 }
 
-#[command]
+#[tauri::command]
+async fn get_selected_text() -> Result<String, String> {
+    unsafe {
+        if !IsClipboardFormatAvailable(CF_UNICODETEXT).as_bool() {
+            return Ok(String::new()); // Return empty string if no text available
+        }
+
+        if !OpenClipboard(HWND::default()).as_bool() {
+            return Err("Failed to open clipboard".into());
+        }
+
+        let result = match GetClipboardData(CF_UNICODETEXT) {
+            Ok(handle) => {
+                let ptr = handle.0 as *const u16;
+                let len = (0..).take_while(|&i| *ptr.offset(i) != 0).count();
+                let slice = std::slice::from_raw_parts(ptr, len);
+                let text = String::from_utf16_lossy(slice);
+                Ok(text)
+            }
+            Err(_) => Ok(String::new()),
+        };
+
+        CloseClipboard().ok();
+        result
+    }
+}
+
+#[tauri::command]
 async fn get_system_fonts() -> Result<Vec<FontInfo>, String> {
     let mut fonts = Vec::new();
     
@@ -29,7 +61,7 @@ async fn get_system_fonts() -> Result<Vec<FontInfo>, String> {
                             fonts.push(FontInfo {
                                 name: font_name,
                                 path: path.to_string_lossy().to_string(),
-                                is_system: true, // все шрифты в Windows/Fonts считаются системными
+                                is_system: true,
                             });
                         }
                     }
@@ -38,7 +70,7 @@ async fn get_system_fonts() -> Result<Vec<FontInfo>, String> {
         }
     }
     
-    // User fonts directory (Windows 10/11)
+    // User fonts directory
     if let Some(local_app_data) = std::env::var_os("LOCALAPPDATA") {
         let user_font_dir = PathBuf::from(local_app_data)
             .join("Microsoft")
@@ -55,7 +87,7 @@ async fn get_system_fonts() -> Result<Vec<FontInfo>, String> {
                             fonts.push(FontInfo {
                                 name: font_name,
                                 path: path.to_string_lossy().to_string(),
-                                is_system: false, // пользовательские шрифты
+                                is_system: false,
                             });
                         }
                     }
@@ -64,7 +96,6 @@ async fn get_system_fonts() -> Result<Vec<FontInfo>, String> {
         }
     }
     
-    // Сортируем шрифты по имени
     fonts.sort_by(|a, b| a.name.to_lowercase().cmp(&b.name.to_lowercase()));
     
     Ok(fonts)
@@ -72,7 +103,10 @@ async fn get_system_fonts() -> Result<Vec<FontInfo>, String> {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![get_system_fonts])
+        .invoke_handler(tauri::generate_handler![
+            get_system_fonts,
+            get_selected_text
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
