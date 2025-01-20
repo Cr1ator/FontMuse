@@ -1,8 +1,8 @@
 [package]
-name = "app"
+name = "FontMuse"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "Font Preview Application"
+authors = ["Your Name"]
 license = ""
 repository = ""
 edition = "2021"
@@ -15,11 +15,15 @@ name = "app_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-rc.13" }
+tauri-build = { version = "2.0.0-rc.13", features = [] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 log = "0.4"
-tauri = { version = "2.0.0-rc.17" }
+tauri = { version = "2.0.0-rc.17", features = [] }
 tauri-plugin-log = "2.0.0-rc"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
