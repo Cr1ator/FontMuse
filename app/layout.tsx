@@ -6,7 +6,7 @@ import { Providers } from "@/components/providers/Providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Font Preview",
+  title: "FontMuse by DMD",
   description: "Modern font preview application",
 };
 

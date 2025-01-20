@@ -2,7 +2,7 @@
 name = "FontMuse"
 version = "0.1.0"
 description = "Font Preview Application"
-authors = ["Your Name"]
+authors = ["Amid"]
 license = ""
 repository = ""
 edition = "2021"
