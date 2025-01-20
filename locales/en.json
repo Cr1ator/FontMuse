@@ -1,0 +1,30 @@
+{
+  "window": {
+    "title": "Font Preview"
+  },
+  "controls": {
+    "search": {
+      "placeholder": "Search fonts..."
+    },
+    "pinWindow": {
+      "enable": "Enable always on top",
+      "disable": "Disable always on top"
+    },
+    "preview": {
+      "placeholder": "Enter preview text... (or select text anywhere)",
+      "monitorClipboard": "Monitor clipboard for text selection"
+    },
+    "size": {
+      "label": "Size: {{size}}px"
+    },
+    "filters": {
+      "hideSystem": "Hide system fonts"
+    }
+  },
+  "fontGrid": {
+    "loading": "Loading fonts...",
+    "noFonts": "No fonts found",
+    "error": "Error loading fonts",
+    "systemBadge": "System"
+  }
+}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { FontPreview } from "@/components/FontPreview";
 import { FontInfo } from "@/types";
 
@@ -16,10 +17,12 @@ export function FontGrid({
   isLoading,
   error,
 }: FontGridProps) {
+  const { t } = useTranslation();
+
   if (error) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-200px)]">
-        <div className="text-destructive">{error}</div>
+        <div className="text-destructive">{t("fontGrid.error")}</div>
       </div>
     );
   }
@@ -27,7 +30,7 @@ export function FontGrid({
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-200px)]">
-        <div className="text-muted-foreground">Loading fonts...</div>
+        <div className="text-muted-foreground">{t("fontGrid.loading")}</div>
       </div>
     );
   }
@@ -35,7 +38,7 @@ export function FontGrid({
   if (fonts.length === 0) {
     return (
       <div className="flex justify-center items-center h-[calc(100vh-200px)]">
-        <div className="text-muted-foreground">No fonts found</div>
+        <div className="text-muted-foreground">{t("fontGrid.noFonts")}</div>
       </div>
     );
   }

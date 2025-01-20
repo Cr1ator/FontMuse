@@ -6,14 +6,28 @@ use windows::Win32::System::DataExchange::{
     IsClipboardFormatAvailable
 };
 use windows::Win32::Foundation::HWND;
+use windows::Win32::Globalization::GetUserDefaultLCID;
 
-const CF_UNICODETEXT: u32 = 13; // Windows constant for Unicode text format
+const CF_UNICODETEXT: u32 = 13;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct FontInfo {
     name: String,
     path: String,
     is_system: bool,
+}
+
+#[tauri::command]
+fn get_system_language() -> String {
+    unsafe {
+        let lcid = GetUserDefaultLCID();
+        // Russian LCID is 0x0419
+        if lcid == 0x0419 {
+            String::from("ru")
+        } else {
+            String::from("en")
+        }
+    }
 }
 
 #[tauri::command]
@@ -103,9 +117,11 @@ async fn get_system_fonts() -> Result<Vec<FontInfo>, String> {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
             get_system_fonts,
-            get_selected_text
+            get_selected_text,
+            get_system_language
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

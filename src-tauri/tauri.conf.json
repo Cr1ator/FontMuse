@@ -26,6 +26,9 @@
       "capabilities": ["main-capability"]
     }
   },
+  "plugins": {
+    "fs": {}
+  },
   "bundle": {
     "active": true,
     "targets": "all",

@@ -6,6 +6,22 @@
   "permissions": [
     "core:default",
     "core:window:default",
-    "core:window:allow-set-always-on-top"
+    "core:window:allow-set-always-on-top",
+    "fs:default",
+    {
+      "identifier": "fs:allow-read",
+      "allow": [{ "path": "$APPLOCALDATA/settings/language.txt" }]
+    },
+    {
+      "identifier": "fs:allow-write",
+      "allow": [{ "path": "$APPLOCALDATA/settings/language.txt" }]
+    },
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        { "path": "$APPLOCALDATA/settings" },
+        { "path": "$APPLOCALDATA/settings/**" }
+      ]
+    }
   ]
 }

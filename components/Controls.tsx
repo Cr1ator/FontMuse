@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { useTranslation } from "react-i18next";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Pin, Clipboard } from "lucide-react";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 interface ControlsProps {
   searchText: string;
@@ -33,6 +35,7 @@ export function Controls({
   isAlwaysOnTop,
   setIsAlwaysOnTop,
 }: ControlsProps) {
+  const { t } = useTranslation();
   const [isMonitoringEnabled, setIsMonitoringEnabled] = useState(true);
 
   useEffect(() => {
@@ -66,27 +69,12 @@ export function Controls({
 
   const handleAlwaysOnTop = async () => {
     try {
-      console.log("handleAlwaysOnTop called, current state:", isAlwaysOnTop);
-
       const window = await getCurrentWindow();
-      console.log("Got window instance:", window);
-
       const newState = !isAlwaysOnTop;
-      console.log("Setting new state to:", newState);
-
       await window.setAlwaysOnTop(newState);
-      console.log("Always on top set successfully");
-
       setIsAlwaysOnTop(newState);
-      console.log("State updated");
     } catch (error) {
-      console.error("Detailed error in setAlwaysOnTop:", error);
-      // Попробуем получить больше информации об ошибке
-      if (error instanceof Error) {
-        console.error("Error name:", error.name);
-        console.error("Error message:", error.message);
-        console.error("Error stack:", error.stack);
-      }
+      console.error("Error in setAlwaysOnTop:", error);
     }
   };
 
@@ -96,7 +84,7 @@ export function Controls({
         <div className="flex items-center gap-4">
           <Input
             type="text"
-            placeholder="Search fonts..."
+            placeholder={t("controls.search.placeholder")}
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             className="flex-1"
@@ -106,19 +94,21 @@ export function Controls({
             size="icon"
             onClick={handleAlwaysOnTop}
             className="w-10 h-10"
-            title={
-              isAlwaysOnTop ? "Disable always on top" : "Enable always on top"
-            }
+            title={t(
+              isAlwaysOnTop
+                ? "controls.pinWindow.disable"
+                : "controls.pinWindow.enable"
+            )}
           >
             <Pin className={isAlwaysOnTop ? "rotate-45" : ""} />
           </Button>
+          <LanguageSwitcher />
         </div>
 
-        {/* Rest of the component remains the same */}
         <div className="flex items-center gap-4">
           <Input
             type="text"
-            placeholder="Enter preview text... (or select text anywhere)"
+            placeholder={t("controls.preview.placeholder")}
             value={previewText}
             onChange={(e) => setPreviewText(e.target.value)}
             className="flex-1"
@@ -132,6 +122,7 @@ export function Controls({
             <label
               htmlFor="text-monitoring"
               className="text-sm font-medium cursor-pointer"
+              title={t("controls.preview.monitorClipboard")}
             >
               <Clipboard
                 className={`h-4 w-4 ${
@@ -143,7 +134,9 @@ export function Controls({
         </div>
 
         <div className="flex items-center gap-4">
-          <span className="min-w-[100px] text-sm">Size: {fontSize}px</span>
+          <span className="min-w-[100px] text-sm">
+            {t("controls.size.label", { size: fontSize })}
+          </span>
           <Slider
             value={[fontSize]}
             onValueChange={([value]) => setFontSize(value)}
@@ -164,7 +157,7 @@ export function Controls({
             htmlFor="system-fonts"
             className="text-sm font-medium cursor-pointer"
           >
-            Hide system fonts
+            {t("controls.filters.hideSystem")}
           </label>
         </div>
       </CardContent>
