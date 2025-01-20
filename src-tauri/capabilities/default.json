@@ -10,11 +10,17 @@
     "fs:default",
     {
       "identifier": "fs:allow-read",
-      "allow": [{ "path": "$APPLOCALDATA/settings/language.txt" }]
+      "allow": [
+        { "path": "$APPLOCALDATA/settings/language.txt" },
+        { "path": "$APPLOCALDATA/settings/theme.txt" }
+      ]
     },
     {
       "identifier": "fs:allow-write",
-      "allow": [{ "path": "$APPLOCALDATA/settings/language.txt" }]
+      "allow": [
+        { "path": "$APPLOCALDATA/settings/language.txt" },
+        { "path": "$APPLOCALDATA/settings/theme.txt" }
+      ]
     },
     {
       "identifier": "fs:scope",

@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Pin, Clipboard } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface ControlsProps {
   searchText: string;
@@ -102,6 +103,7 @@ export function Controls({
           >
             <Pin className={isAlwaysOnTop ? "rotate-45" : ""} />
           </Button>
+          <ThemeToggle />
           <LanguageSwitcher />
         </div>
 

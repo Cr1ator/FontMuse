@@ -1,0 +1,76 @@
+/* Base transitions for theme changes */
+:root {
+  --transition-duration: 150ms;
+}
+
+/* Apply transitions to themed elements */
+:root * {
+  transition-property: color, background-color, border-color, outline-color,
+    text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: var(--transition-duration);
+}
+
+/* Theme Variables - Light */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 222.2 84% 4.9%;
+
+  --radius: 0.5rem;
+}
+
+/* Theme Variables - Dark */
+.dark {
+  --background: 220 15% 10%; /* Глубокий тёмно-синий для фона */
+  --foreground: 210 10% 90%; /* Мягкий светлый цвет для текста */
+
+  --card: 220 15% 12%; /* Тёмно-синий, слегка светлее фона */
+  --card-foreground: 210 10% 90%; /* Тот же светлый текст */
+
+  --popover: 220 15% 12%; /* Цвет похожий на карточки */
+  --popover-foreground: 210 10% 90%;
+
+  --primary: 210 70% 55%; /* Яркий голубой для акцентов */
+  --primary-foreground: 220 15% 10%; /* Контрастный цвет для текста */
+
+  --secondary: 210 20% 25%; /* Приглушённый тёмно-синий для второстепенных элементов */
+  --secondary-foreground: 210 10% 90%; /* Светлый текст на второстепенных элементах */
+
+  --muted: 210 15% 20%; /* Приглушённый серый для фона */
+  --muted-foreground: 210 10% 70%; /* Нейтральный светло-серый текст */
+
+  --accent: 280 55% 50%; /* Яркий пурпурный для выделений */
+  --accent-foreground: 210 10% 95%; /* Очень светлый текст на акцентах */
+
+  --destructive: 0 60% 50%; /* Чистый красный для опасных действий */
+  --destructive-foreground: 0 10% 95%; /* Светлый текст для опасных действий */
+
+  --border: 210 15% 20%; /* Тёмный серо-синий для границ */
+  --input: 210 15% 20%; /* Такой же, как и границы, для единообразия */
+  --ring: 210 70% 55%; /* Голубой для фокуса */
+}

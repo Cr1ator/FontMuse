@@ -68,6 +68,8 @@ body {
   }
 }
 
+@import "./theme.css";
+
 @layer base {
   * {
     @apply border-border;

@@ -26,5 +26,11 @@
     "noFonts": "No fonts found",
     "error": "Error loading fonts",
     "systemBadge": "System"
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   }
 }
