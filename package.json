@@ -1,5 +1,5 @@
 {
-  "name": "font-preview",
+  "name": "fontmuse",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -7,47 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "tauri": "tauri",
-    
-    "// === Основные команды сборки ===": "",
-    "build:dev": "tauri dev",
-    "build:prod": "tauri build",
-    
-    "// === Portable сборки ===": "",
-    "build:portable": "npm run build:portable:current",
-    "build:portable:current": "npm run build && tauri build --config src-tauri/tauri.portable.conf.json",
-    "build:portable:windows": "npm run build && tauri build --target x86_64-pc-windows-msvc --config src-tauri/tauri.portable.conf.json",
-    "build:portable:linux": "npm run build && tauri build --target x86_64-unknown-linux-gnu --config src-tauri/tauri.portable.conf.json",
-    "build:portable:macos-intel": "npm run build && tauri build --target x86_64-apple-darwin --config src-tauri/tauri.portable.conf.json",
-    "build:portable:macos-arm": "npm run build && tauri build --target aarch64-apple-darwin --config src-tauri/tauri.portable.conf.json",
-    "build:portable:macos": "npm run build:portable:macos-intel && npm run build:portable:macos-arm",
-    "build:portable:all": "npm run build:portable:windows && npm run build:portable:linux && npm run build:portable:macos",
-    
-    "// === Release сборки для GitHub ===": "",
-    "build:release": "npm run clean:build && npm run build:portable:current && npm run package:current",
-    "build:release:all": "npm run clean:build && npm run build:portable:all && npm run package:all",
-    
-    "// === Упаковка в архивы ===": "",
-    "package:current": "node scripts/package-release.js",
-    "package:all": "node scripts/package-all-releases.js",
-    
-    "// === Очистка ===": "",
-    "clean": "rimraf out dist src-tauri/target releases",
-    "clean:build": "rimraf out dist",
-    "clean:releases": "rimraf releases",
-    
-    "// === Утилиты ===": "",
-    "check:deps": "tauri info",
-    "install:targets": "rustup target add x86_64-pc-windows-msvc x86_64-unknown-linux-gnu x86_64-apple-darwin aarch64-apple-darwin",
-    "prepare:release": "npm run install:targets && npm run clean"
+    "tauri": "tauri"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.4",
     "@radix-ui/react-slider": "^1.2.2",
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-switch": "^1.1.2",
-    "@tauri-apps/api": "^2.0.1",
-    "@tauri-apps/plugin-fs": "^2.2.0",
+    "@tauri-apps/api": "^2.0.0",
+    "@tauri-apps/plugin-fs": "^2.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "i18next": "^24.2.1",
@@ -60,14 +28,13 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "2.0.0-rc.18",
+    "@tauri-apps/cli": "^2.0.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "eslint": "^8",
     "eslint-config-next": "14.2.16",
     "postcss": "^8",
-    "rimraf": "^5.0.5",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }

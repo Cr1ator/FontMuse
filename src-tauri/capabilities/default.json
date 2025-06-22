@@ -1,13 +1,21 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main-capability",
-  "description": "Capability for the main window",
+  "description": "Capability for FontMuse main window",
   "windows": ["main-window"],
   "permissions": [
     "core:default",
     "core:window:default",
     "core:window:allow-set-always-on-top",
+    
     "fs:default",
+    
+    "fs:allow-read-text-file",
+    "fs:allow-write-text-file",
+    "fs:allow-read-dir", 
+    "fs:allow-exists",
+    "fs:allow-mkdir",
+    
     {
       "identifier": "fs:allow-read",
       "allow": [
@@ -16,18 +24,30 @@
       ]
     },
     {
-      "identifier": "fs:allow-write",
+      "identifier": "fs:allow-write", 
       "allow": [
         { "path": "$APPLOCALDATA/settings/language.txt" },
         { "path": "$APPLOCALDATA/settings/theme.txt" }
       ]
-    },
-    {
-      "identifier": "fs:scope",
-      "allow": [
-        { "path": "$APPLOCALDATA/settings" },
-        { "path": "$APPLOCALDATA/settings/**" }
-      ]
     }
-  ]
+  ],
+
+  "scope": {
+    "allow": [
+      { "path": "$APPLOCALDATA/settings" },
+      { "path": "$APPLOCALDATA/settings/**" },
+      
+      { "path": "$WINDIR/Fonts/**" },
+      { "path": "$LOCALAPPDATA/Microsoft/Windows/Fonts/**" },
+      
+      { "path": "/usr/share/fonts/**" },
+      { "path": "$HOME/.local/share/fonts/**" },
+      { "path": "/usr/local/share/fonts/**" },
+      { "path": "/System/Fonts/**" },
+      
+      { "path": "/System/Library/Fonts/**" },
+      { "path": "/Library/Fonts/**" },
+      { "path": "$HOME/Library/Fonts/**" }
+    ]
+  }
 }

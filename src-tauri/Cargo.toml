@@ -1,35 +1,27 @@
-# src-tauri/Cargo.toml
-
 [package]
-name = "FontMuse"
+name = "fontmuse"
 version = "0.1.0"
-description = "Font Preview Application"
-authors = ["Amid"]
+description = "Modern font preview application"
+authors = ["DMD"]
 license = ""
 repository = ""
 edition = "2021"
-rust-version = "1.71"
-
-[lib]
-name = "app_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+rust-version = "1.77.2"
 
 [build-dependencies]
-tauri-build = { version = "2.0.0-rc.13", features = [] }
+tauri-build = { version = "2.0", features = [] }
 
 [dependencies]
 serde_json = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-log = "0.4"
-tauri = { version = "2.0.0-rc.17", features = [] }
-tauri-plugin-fs = "2.0.0-rc"
-tauri-plugin-log = "2.0.0-rc"
+tauri = { version = "2.0", features = [] }
+tauri-plugin-fs = "2.0"
 
-# Зависимости ТОЛЬКО для Windows
+# Windows-specific dependencies
 [target.'cfg(windows)'.dependencies]
-windows = { version = "0.48", features = [
+windows = { version = "0.58", features = [
     "Win32_System_DataExchange",
-    "Win32_Foundation",
+    "Win32_Foundation", 
     "Win32_Globalization",
     "Win32_UI_WindowsAndMessaging"
 ] }
@@ -37,3 +29,11 @@ windows = { version = "0.48", features = [
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
+
+# Optimize for release builds
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

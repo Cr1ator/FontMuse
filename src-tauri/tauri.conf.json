@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "FontMust by DMD",
+  "productName": "FontMuse by DMD",
   "version": "0.1.0",
-  "identifier": "186b31e5e3d5103996142376b25066af11ff4ca61c687011083b3d7595d3a53ca8d0b119654d24e32a5a01052a308732701bab8be5837255374bb8041fe40551",
+  "identifier": "com.dmd.fontmuse",
   "build": {
     "frontendDist": "../out",
     "devUrl": "http://localhost:3000",
@@ -16,9 +16,18 @@
         "title": "FontMuse by DMD",
         "width": 1200,
         "height": 800,
+        "minWidth": 800,
+        "minHeight": 600,
         "resizable": true,
+        "maximizable": true,
+        "minimizable": true,
+        "closable": true,
         "fullscreen": false,
-        "alwaysOnTop": false
+        "alwaysOnTop": false,
+        "decorations": true,
+        "transparent": false,
+        "visible": true,
+        "center": true
       }
     ],
     "security": {
@@ -34,10 +43,65 @@
     "targets": "all",
     "icon": [
       "icons/32x32.png",
-      "icons/128x128.png",
+      "icons/128x128.png", 
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "publisher": "DMD",
+    "copyright": "Copyright © 2025 DMD. All rights reserved.",
+    "category": "DeveloperTool",
+    "shortDescription": "Modern font preview application",
+    "longDescription": "FontMuse is a modern desktop font preview application that provides an intuitive interface for browsing, searching, and previewing system fonts with real-time text monitoring and customizable preview options.",
+    "createUpdaterArtifacts": false,
+    "windows": {
+      "certificateThumbprint": null,
+      "digestAlgorithm": "sha256",
+      "timestampUrl": "",
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
+      "allowDowngrades": false,
+      "wix": {
+        "language": ["en-US"],
+        "template": null
+      },
+      "nsis": {
+        "template": null,
+        "languages": ["English"],
+        "displayLanguageSelector": false
+      }
+    },
+    "macOS": {
+      "frameworks": [],
+      "minimumSystemVersion": "10.13",
+      "entitlements": null,
+      "signingIdentity": null,
+      "providerShortName": null,
+      "dmg": {
+        "appPosition": {
+          "x": 180,
+          "y": 170
+        },
+        "applicationFolderPosition": {
+          "x": 480, 
+          "y": 170
+        },
+        "windowSize": {
+          "width": 660,
+          "height": 400
+        }
+      }
+    },
+    "linux": {
+      "deb": {
+        "depends": [],
+        "priority": "optional",
+        "section": "utils"
+      },
+      "appimage": {
+        "bundleMediaFramework": false
+      }
+    }
   }
 }
