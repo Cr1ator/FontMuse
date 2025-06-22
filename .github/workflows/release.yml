@@ -3,129 +3,61 @@
 name: 🚀 Build & Release FontMuse
 
 on:
-  # Запускать при создании тега вида v1.0.0, v1.2.3 и т.д.
   push:
     tags: ['v*']
-  # Позволяет запускать вручную из интерфейса GitHub Actions
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build on ${{ matrix.name }}
+  release:
+    name: Build & Release on ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          - platform: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            name: Linux
-            artifact_name: FontMuse-linux-portable.AppImage
-            asset_path: src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/appimage/*.AppImage
-          - os: windows-latest
+          - platform: windows-latest
             target: x86_64-pc-windows-msvc
-            name: Windows
-            artifact_name: FontMuse-windows-portable.zip
-            asset_path: src-tauri/target/x86_64-pc-windows-msvc/release/FontMuse.exe
-          - os: macos-latest
+          - platform: macos-latest
             target: x86_64-apple-darwin
-            name: macOS (Intel)
-            artifact_name: FontMuse-macos-intel-portable.tar.gz
-            asset_path: src-tauri/target/x86_64-apple-darwin/release/bundle/macos/FontMuse.app
-          - os: macos-latest
+          - platform: macos-latest
             target: aarch64-apple-darwin
-            name: macOS (Apple Silicon)
-            artifact_name: FontMuse-macos-arm-portable.tar.gz
-            asset_path: src-tauri/target/aarch64-apple-darwin/release/bundle/macos/FontMuse.app
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.platform }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🟢 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: 📦 Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-
-      - name: 🦀 Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-
-      - name: 🐧 Install Linux dependencies
-        if: matrix.os == 'ubuntu-latest' # <--- ИЗМЕНЕНИЕ 1
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libgtk-3-dev \
-            libwebkit2gtk-4.0-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf \
-            libglib2.0-dev \
-            libgirepository1.0-dev \
-            gobject-introspection
-
-      - name: 📦 Install frontend dependencies
+      
+      - name: Install frontend dependencies
         run: pnpm install
 
-      - name: 🔨 Build portable app
-        run: pnpm tauri build --target ${{ matrix.target }} --config src-tauri/tauri.portable.conf.json
-
-      - name: 📦 Package release assets
-        shell: bash
-        run: |
-          # Создаем папку для артефактов
-          mkdir -p artifacts
-
-          # Определяем имя и путь к ассету
-          ASSET_PATH="${{ matrix.asset_path }}"
-          ARTIFACT_NAME="${{ matrix.artifact_name }}"
-
-          # Упаковываем в зависимости от расширения
-          if [[ "$ARTIFACT_NAME" == *.zip ]]; then
-            # Для Windows .exe -> .zip
-            7z a "artifacts/$ARTIFACT_NAME" "$ASSET_PATH"
-          elif [[ "$ARTIFACT_NAME" == *.tar.gz ]]; then
-            # Для macOS .app -> .tar.gz
-            tar -czf "artifacts/$ARTIFACT_NAME" -C "$(dirname "$ASSET_PATH")" "$(basename "$ASSET_PATH")"
-          else
-            # Для Linux .AppImage просто копируем
-            cp "$ASSET_PATH" "artifacts/$ARTIFACT_NAME"
-          fi
-
-      - name: 📤 Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact_name }}
-          path: artifacts/${{ matrix.artifact_name }}
-
-  release:
-    name: 🚀 Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-
-    steps:
-      - name: 📥 Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: 🚀 Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          # Имя релиза будет "FontMuse v1.0.0"
-          name: FontMuse ${{ github.ref_name }}
-          # Ищет все файлы во всех скачанных папках артефактов
-          files: artifacts/**/*
-          # Генерирует описание изменений автоматически
-          generate_release_notes: true
+      # --- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ ---
+      # Используем tauri-action, который сам установит все зависимости и соберет проект
+      - name: Build the app
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Указываем, что нужно собрать portable-версию
+          args: --target ${{ matrix.target }} --config src-tauri/tauri.portable.conf.json
+          # Имя тега для релиза
+          tagName: ${{ github.ref_name }}
+          # Название релиза
+          releaseName: 'FontMuse ${{ github.ref_name }}'
+          # Описание релиза
+          releaseBody: 'See the assets to download this version.'
+          # Создавать как черновик
+          releaseDraft: false
+          # Это не пре-релиз
+          prerelease: false
