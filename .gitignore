@@ -1,135 +1,61 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# .gitignore
 
-# dependencies
+# ============================================
+# Зависимости и кеш пакетных менеджеров
+# ============================================
 /node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+.pnpm-store/
+.pnpm-debug.log*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.yarn/install-state.gz
+.yarn-integrity
 
-# local env files
-.env*.local
-
-# vercel
-.vercel
-
-# typescript
+# ============================================
+# Сборки и артефакты Next.js
+# ============================================
+/.next/
+/out/
+/build/
 *.tsbuildinfo
 next-env.d.ts
 
 # ============================================
-# Tauri specific
+# Сборки и артефакты Tauri
 # ============================================
-
-# Tauri build output
-/src-tauri/target/
-
-# Tauri generated schemas
 /src-tauri/gen/
-
-# Release builds and archives
+/src-tauri/target/
 /releases/
 /dist/
+
+# Игнорируем архивы и установщики в корне
 *.zip
 *.tar.gz
 *.AppImage
 *.dmg
 *.msi
 *.deb
+*.exe
 
 # ============================================
-# Development tools
+# Файлы IDE и операционной системы
 # ============================================
-
-# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-
-# OS generated files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
-
-# Windows
-*.lnk
-
-# Linux
-*~
+ehthumbs.db
 
 # ============================================
-# Package managers
+# Секреты и локальные конфигурации
+# ВАЖНО: Никогда не удаляйте эти строки!
 # ============================================
-
-# pnpm
-.pnpm-debug.log*
-.pnpm-store/
-
-# npm
-npm-debug.log*
-npm-error.log*
-
-# yarn
-yarn-debug.log*
-yarn-error.log*
-.yarn-integrity
-
-# ============================================
-# Build artifacts and caches
-# ============================================
-
-# Build outputs
-/target/
-/dist/
-/build/
-
-# Cache directories
-.cache/
-.parcel-cache/
-.eslintcache
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# ============================================
-# Security and secrets
-# ============================================
-
-# Environment variables
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# API keys and secrets
+.env*.local
 secrets.json
 *.key
 *.pem
@@ -137,25 +63,15 @@ secrets.json
 *.pfx
 
 # ============================================
-# Temporary and backup files
+# Логи и временные файлы
 # ============================================
-
-# Temporary folders
-tmp/
-temp/
-
-# Backup files
-*.backup
-*.bak
-*.orig
-
-# Log files
 *.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+.eslintcache
 
 # ============================================
-# Documentation builds
+# Vercel (если используется)
 # ============================================
-
-# Generated documentation
-/docs/build/
-/docs/.docusaurus/
+.vercel
