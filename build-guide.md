@@ -49,7 +49,7 @@ pnpm run build:prod
 
 ### Настройка конфигурации
 
-1. **Создайте файл `src-tauri/tauri.portable.conf.json`** (используйте artifact выше)
+1. **Создайте файл `src-tauri/tauri.conf.json`** (используйте artifact выше)
 
 2. **Обновите scripts в `package.json`** (используйте artifact выше)
 
@@ -165,13 +165,13 @@ jobs:
       matrix:
         include:
           - platform: 'macos-latest'
-            args: '--target aarch64-apple-darwin --config src-tauri/tauri.portable.conf.json'
+            args: '--target aarch64-apple-darwin --config src-tauri/tauri.conf.json'
           - platform: 'macos-latest' 
-            args: '--target x86_64-apple-darwin --config src-tauri/tauri.portable.conf.json'
+            args: '--target x86_64-apple-darwin --config src-tauri/tauri.conf.json'
           - platform: 'ubuntu-20.04'
-            args: '--target x86_64-unknown-linux-gnu --config src-tauri/tauri.portable.conf.json'
+            args: '--target x86_64-unknown-linux-gnu --config src-tauri/tauri.conf.json'
           - platform: 'windows-latest'
-            args: '--target x86_64-pc-windows-msvc --config src-tauri/tauri.portable.conf.json'
+            args: '--target x86_64-pc-windows-msvc --config src-tauri/tauri.conf.json'
 
     runs-on: ${{ matrix.platform }}
     steps:

@@ -7,7 +7,6 @@
 )]
 
 use serde::{Serialize, Deserialize};
-use std::path::PathBuf;
 
 /// Common structure for font information across all platforms
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -20,8 +19,9 @@ pub struct FontInfo {
 /// Windows-specific implementation using Windows APIs (updated for windows crate 0.58)
 #[cfg(target_os = "windows")]
 mod windows_api {
-    use super::{FontInfo, PathBuf};
+    use super::FontInfo;
     use std::fs;
+    use std::path::PathBuf;
     use windows::Win32::Foundation::HWND;
     use windows::Win32::Globalization::GetUserDefaultLCID;
     use windows::Win32::System::DataExchange::{
@@ -49,13 +49,11 @@ mod windows_api {
     pub async fn get_selected_text() -> Result<String, String> {
         unsafe {
             // Check if clipboard contains Unicode text
-            // В новой версии IsClipboardFormatAvailable возвращает Result<(), Error>
             if IsClipboardFormatAvailable(CF_UNICODETEXT).is_err() {
                 return Ok(String::new());
             }
 
             // Try to open clipboard
-            // В новой версии OpenClipboard возвращает Result<(), Error>
             if let Err(_) = OpenClipboard(HWND::default()) {
                 return Err("Failed to open clipboard".into());
             }
@@ -154,11 +152,15 @@ mod macos_api {
     pub async fn get_system_fonts() -> Result<Vec<FontInfo>, String> {
         let mut fonts = Vec::new();
         
+        // Create home directory path once
+        let home_dir = std::env::var("HOME").unwrap_or_default();
+        let home_fonts_path = format!("{}/Library/Fonts", home_dir);
+        
         // Standard macOS font directories
         let font_dirs = vec![
             "/System/Library/Fonts",
             "/Library/Fonts", 
-            &format!("{}/Library/Fonts", std::env::var("HOME").unwrap_or_default()),
+            &home_fonts_path,
         ];
 
         for font_dir in font_dirs {
@@ -216,11 +218,15 @@ mod linux_api {
     pub async fn get_system_fonts() -> Result<Vec<FontInfo>, String> {
         let mut fonts = Vec::new();
         
+        // Create home directory path once
+        let home_dir = std::env::var("HOME").unwrap_or_default();
+        let home_fonts_path = format!("{}/.local/share/fonts", home_dir);
+        
         // Standard Linux font directories
         let font_dirs = vec![
             "/usr/share/fonts",
             "/usr/local/share/fonts",
-            &format!("{}/.local/share/fonts", std::env::var("HOME").unwrap_or_default()),
+            &home_fonts_path,
             "/System/Fonts", // Some distributions
         ];
 

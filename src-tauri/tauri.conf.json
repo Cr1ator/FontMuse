@@ -69,7 +69,8 @@
       "nsis": {
         "template": null,
         "languages": ["English"],
-        "displayLanguageSelector": false
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico"
       }
     },
     "macOS": {

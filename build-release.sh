@@ -97,7 +97,7 @@ build_platform() {
     fi
     
     # Сборка
-    if tauri build --target "$target" --config src-tauri/tauri.portable.conf.json; then
+    if tauri build --target "$target" --config src-tauri/tauri.conf.json; then
         log "Сборка для $display_name завершена ✓"
         return 0
     else

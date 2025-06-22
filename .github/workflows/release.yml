@@ -1,57 +1,16 @@
-# .github/workflows/release.yml
+# .github/workflows/release-with-portable.yml
+# Финальная, исправленная и надежная версия workflow
 
-name: 🚀 Release FontMuse
+name: 🚀 Release with Portable Versions
 
 on:
   push:
-    tags:
-      - 'v*'  # Trigger on version tags like v1.0.0
-  workflow_dispatch:  # Allow manual trigger
+    tags: ['v*']
+  workflow_dispatch:
 
 jobs:
-  create-release:
-    permissions:
-      contents: write
-    runs-on: ubuntu-22.04
-    outputs:
-      release-id: ${{ steps.create-release.outputs.result }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Get version
-        run: echo "PACKAGE_VERSION=$(node -pe "require('./package.json').version")" >> $GITHUB_ENV
-
-      - name: Create release
-        id: create-release
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { data } = await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: `v${process.env.PACKAGE_VERSION}`,
-              name: `FontMuse v${process.env.PACKAGE_VERSION}`,
-              body: 'Take a look at the assets to download and install this app.',
-              draft: true,
-              prerelease: false
-            })
-            return data.id
-
-  build-binaries:
-    needs: create-release
+  # ЭТАП 1: Сборка всех артефактов для всех платформ
+  publish-tauri:
     permissions:
       contents: write
     strategy:
@@ -60,7 +19,7 @@ jobs:
         include:
           - platform: 'macos-latest'
             args: '--target aarch64-apple-darwin'
-          - platform: 'macos-latest'  
+          - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
           - platform: 'ubuntu-22.04'
             args: ''
@@ -69,65 +28,184 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
-      - name: Checkout repository
+      - name: 📥 Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
+      - name: 🐧 Install dependencies (Ubuntu only)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libgtk-3-dev \
+            build-essential \
+            pkg-config
+
+      - name: 📦 Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
 
-      - name: Setup Node.js
+      - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 'lts/*'
           cache: 'pnpm'
 
-      - name: Rust setup
+      - name: 🦀 Install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
 
-      - name: Rust cache
+      - name: 🚀 Rust cache
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
 
-      - name: Install dependencies (Ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
-
-      - name: Install frontend dependencies
+      - name: 📦 Install frontend dependencies
         run: pnpm install
 
-      - name: Build with Tauri
+      - name: 🔨 Build and create release draft with Tauri Action
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          releaseId: ${{ needs.create-release.outputs.release-id }}
+          tagName: app-v__VERSION__
+          releaseName: 'FontMuse v__VERSION__'
+          releaseBody: |
+            ## 🎉 FontMuse v__VERSION__
+            
+            **Modern font preview application built with Tauri 2.0**
+            
+            ### 📥 Downloads
+            
+            | Platform | Type | File | Description |
+            |----------|------|------|-------------|
+            | 🪟 **Windows** | Installer | `.msi` | MSI installer (recommended) |
+            | 🪟 **Windows** | Installer | `.exe` | NSIS installer |
+            | 🪟 **Windows** | 📦 Portable | `.zip` | Portable executable |
+            | 🍎 **macOS** | Installer | `.dmg` | Disk image installer |
+            | 🍎 **macOS** | 📦 Portable | `.app.tar.gz` | Portable app bundle |
+            | 🐧 **Linux** | 📦 Portable | `.AppImage` | Portable application |
+            | 🐧 **Linux** | Package | `.deb` | Debian package |
+            
+            ### ✨ Features
+            - 🎨 Browse and preview system fonts
+            - 📋 Real-time clipboard text monitoring
+            - 🔧 Customizable font size and preview text
+            - 🌙 Light/Dark theme support
+            - 🌍 Multi-language interface (English/Russian)
+            - 📌 Always-on-top mode for easy comparison
+            
+            ### 🛠️ Installation
+            
+            #### 🪟 Windows
+            - **Installer**: Download `.msi` or `.exe` and run
+            - **Portable**: Download `.zip`, extract and run `FontMuse.exe`
+            
+            #### 🍎 macOS  
+            - **Installer**: Download `.dmg`, open and drag to Applications
+            - **Portable**: Download `.app.tar.gz`, extract and run
+            
+            #### 🐧 Linux
+            - **Portable**: Download `.AppImage`, make executable and run
+            
+            ---
+            
+            Built with ❤️ using **Tauri 2.0** + **Next.js** + **TypeScript**
+          releaseDraft: true
+          prerelease: false
           args: ${{ matrix.args }}
 
+      - name: 📦 Create and Archive Windows Portable
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          $releaseDir = "src-tauri/target/release"
+          $exePath = (Get-ChildItem -Path $releaseDir -Filter "*.exe" -Recurse | Where-Object { $_.Name -notlike "*updater*" } | Select-Object -First 1).FullName
+          
+          if ($exePath) {
+            Write-Host "✅ Found executable: $exePath"
+            $portableDir = "portable-windows"
+            New-Item -ItemType Directory -Force -Path $portableDir
+            Copy-Item -Path $exePath -Destination "$portableDir\FontMuse.exe"
+            
+            # Создаем README.txt
+            "Run FontMuse.exe to start" | Set-Content -Path "$portableDir\README.txt"
+            
+            # Архивируем папку в zip
+            $zipName = "FontMuse-Windows-Portable.zip"
+            Compress-Archive -Path "$portableDir\*" -DestinationPath $zipName
+            Write-Host "✅ Created portable archive: $zipName"
+          } else {
+            Write-Host "❌ Executable not found in $releaseDir"
+            exit 1
+          }
+
+      - name: 📤 Upload Windows Portable as Build Artifact
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-portable-artifact
+          path: FontMuse-Windows-Portable.zip
+
+  # ЭТАП 2: Публикация релиза после всех сборок
   publish-release:
+    needs: publish-tauri
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
-    runs-on: ubuntu-22.04
-    needs: [create-release, build-binaries]
-
+    
     steps:
-      - name: Publish release
-        id: publish-release
+      - name: 📥 Download portable artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-portable-artifact
+          path: ./portable-dist
+
+      - name: 🎉 Attach Portable Asset and Publish Release
         uses: actions/github-script@v7
-        env:
-          release_id: ${{ needs.create-release.outputs.release-id }}
         with:
           script: |
-            github.rest.repos.updateRelease({
+            const fs = require('fs');
+            
+            const { data: releases } = await github.rest.repos.listReleases({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              release_id: process.env.release_id,
+              per_page: 5
+            });
+            
+            const draftRelease = releases.find(r => r.draft && r.tag_name.startsWith('app-v'));
+            
+            if (!draftRelease) {
+              console.log('No draft release found. Exiting.');
+              return;
+            }
+            
+            console.log(`Found draft release: ${draftRelease.tag_name}`);
+            
+            const assetPath = './portable-dist/FontMuse-Windows-Portable.zip';
+            const assetName = 'FontMuse-Windows-Portable.zip';
+            
+            console.log(`Uploading asset: ${assetName}`);
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: draftRelease.id,
+              name: assetName,
+              data: fs.readFileSync(assetPath)
+            });
+            
+            console.log('Publishing the release...');
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: draftRelease.id,
               draft: false,
               prerelease: false
-            })
+            });
+            
+            console.log(`✅ Successfully published release ${draftRelease.tag_name}`);

@@ -32,14 +32,14 @@ pnpm install
 pnpm run build
 
 # Windows portable
-pnpm tauri build --target x86_64-pc-windows-msvc --config src-tauri/tauri.portable.conf.json
+pnpm tauri build --target x86_64-pc-windows-msvc --config src-tauri/tauri.conf.json
 
 # Linux portable  
-pnpm tauri build --target x86_64-unknown-linux-gnu --config src-tauri/tauri.portable.conf.json
+pnpm tauri build --target x86_64-unknown-linux-gnu --config src-tauri/tauri.conf.json
 
 # macOS portable (только на macOS)
-pnpm tauri build --target x86_64-apple-darwin --config src-tauri/tauri.portable.conf.json
-pnpm tauri build --target aarch64-apple-darwin --config src-tauri/tauri.portable.conf.json
+pnpm tauri build --target x86_64-apple-darwin --config src-tauri/tauri.conf.json
+pnpm tauri build --target aarch64-apple-darwin --config src-tauri/tauri.conf.json
 ```
 
 ## 📦 Готовые файлы для GitHub Release

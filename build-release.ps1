@@ -125,7 +125,7 @@ function Build-Platform($Target, $DisplayName) {
     }
     
     # Сборка
-    tauri build --target $Target --config src-tauri/tauri.portable.conf.json
+    tauri build --target $Target --config src-tauri/tauri.conf.json
     if ($LASTEXITCODE -eq 0) {
         Write-Info "Сборка для $DisplayName завершена ✓"
         return $true
