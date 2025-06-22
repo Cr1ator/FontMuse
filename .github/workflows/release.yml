@@ -4,60 +4,74 @@ name: 🚀 Build & Release FontMuse
 
 on:
   push:
-    tags: ['v*']
-  workflow_dispatch:
+    tags:
+      - 'v*'
 
 jobs:
-  release:
-    name: Build & Release on ${{ matrix.platform }}
+  build:
+    name: Build on ${{ matrix.platform }}
+    runs-on: ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - platform: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-          - platform: windows-latest
-            target: x86_64-pc-windows-msvc
           - platform: macos-latest
             target: x86_64-apple-darwin
           - platform: macos-latest
             target: aarch64-apple-darwin
-
-    runs-on: ${{ matrix.platform }}
+          - platform: windows-latest
+            target: x86_64-pc-windows-msvc
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - uses: actions/checkout@v4
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
-      
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
       - name: Install frontend dependencies
         run: pnpm install
 
-      # --- КЛЮЧЕВОЕ ИЗМЕНЕНИЕ ---
-      # Используем tauri-action, который сам установит все зависимости и соберет проект
-      - name: Build the app
+      - name: Build with Tauri
         uses: tauri-apps/tauri-action@v0
+        with:
+          # Передаем target для кросс-компиляции
+          args: --target ${{ matrix.target }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Отключаем подпись для macOS, если у вас нет сертификата
+          TAURI_SIGNING_PRIVATE_KEY: ""
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
+
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build # Эта задача ждет, пока все сборки в 'build' завершатся
+    
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
-          # Указываем, что нужно собрать portable-версию
-          args: --target ${{ matrix.target }} --config src-tauri/tauri.portable.conf.json
-          # Имя тега для релиза
-          tagName: ${{ github.ref_name }}
-          # Название релиза
-          releaseName: 'FontMuse ${{ github.ref_name }}'
-          # Описание релиза
-          releaseBody: 'See the assets to download this version.'
-          # Создавать как черновик
-          releaseDraft: false
-          # Это не пре-релиз
-          prerelease: false
+          # Скачиваем все артефакты в одну папку
+          path: artifacts
+          # Объединяем артефакты из разных сборок
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          # Имя релиза будет "FontMuse vX.Y.Z"
+          name: FontMuse ${{ github.ref_name }}
+          # Искать все файлы в папке artifacts
+          files: "artifacts/*"
+          # Автоматически генерировать описание изменений
+          generate_release_notes: true

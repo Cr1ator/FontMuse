@@ -25,7 +25,7 @@ tauri = { version = "2.0.0-rc.17", features = [] }
 tauri-plugin-fs = "2.0.0-rc"
 tauri-plugin-log = "2.0.0-rc"
 
-# Эта секция определяет зависимости, которые нужны ТОЛЬКО для Windows.
+# Зависимости ТОЛЬКО для Windows
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.48", features = [
     "Win32_System_DataExchange",
@@ -33,7 +33,6 @@ windows = { version = "0.48", features = [
     "Win32_Globalization",
     "Win32_UI_WindowsAndMessaging"
 ] }
-
 
 [features]
 default = ["custom-protocol"]
