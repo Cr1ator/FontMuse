@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { FontPreview } from "@/components/FontPreview";
+// import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+// import { FontPreview } from "@/components/FontPreview";
 import { Controls } from "@/components/Controls";
 import { useDebounce } from "@/hooks/useDebounce";
 import type { FontInfo } from "@/types";
 import { FontGrid } from "@/components/FontGrid";
 
-const mainWindow = new WebviewWindow("main-window");
+// const mainWindow = new WebviewWindow("main-window");
 
 export default function HomePage() {
   const [fonts, setFonts] = useState<FontInfo[]>([]);

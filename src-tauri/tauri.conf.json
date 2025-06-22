@@ -2,7 +2,7 @@
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "font-preview",
   "version": "0.1.0",
-  "identifier": "com.tauri.dev",
+  "identifier": "186b31e5e3d5103996142376b25066af11ff4ca61c687011083b3d7595d3a53ca8d0b119654d24e32a5a01052a308732701bab8be5837255374bb8041fe40551",
   "build": {
     "frontendDist": "../out",
     "devUrl": "http://localhost:3000",

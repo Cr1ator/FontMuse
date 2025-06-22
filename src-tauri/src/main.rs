@@ -1,3 +1,4 @@
+#![windows_subsystem = "windows"]
 use std::path::PathBuf;
 use serde::{Serialize, Deserialize};
 use std::fs;
