@@ -1,0 +1,149 @@
+name: 🚀 Build & Release FontMuse
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-20.04
+            target: x86_64-unknown-linux-gnu
+            name: Linux
+            artifact: linux
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc  
+            name: Windows
+            artifact: windows
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            name: macOS Intel
+            artifact: macos-intel
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            name: macOS Apple Silicon
+            artifact: macos-arm
+
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: 🦀 Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: 🐧 Install Linux dependencies
+        if: matrix.os == 'ubuntu-20.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: 📦 Install dependencies
+        run: pnpm install
+
+      - name: 🔨 Build portable app
+        run: pnpm tauri build --target ${{ matrix.target }} --config src-tauri/tauri.portable.conf.json
+
+      - name: 📦 Package Windows
+        if: matrix.artifact == 'windows'
+        run: |
+          mkdir -p releases
+          powershell -Command "Compress-Archive -Path 'src-tauri/target/${{ matrix.target }}/release/FontMuse.exe' -DestinationPath 'releases/FontMuse-windows-portable.zip' -Force"
+
+      - name: 📦 Package Linux
+        if: matrix.artifact == 'linux'
+        run: |
+          mkdir -p releases
+          find src-tauri/target/${{ matrix.target }}/release/bundle/appimage/ -name "*.AppImage" -exec cp {} releases/FontMuse-linux-portable.AppImage \;
+
+      - name: 📦 Package macOS
+        if: contains(matrix.artifact, 'macos')
+        run: |
+          mkdir -p releases
+          cd src-tauri/target/${{ matrix.target }}/release/bundle/macos/
+          tar -czf ../../../../../releases/FontMuse-${{ matrix.artifact }}-portable.tar.gz FontMuse.app
+
+      - name: 🔍 Generate checksums
+        run: |
+          cd releases
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            powershell -Command "Get-ChildItem | ForEach-Object { (Get-FileHash -Path \$_.Name -Algorithm SHA256).Hash + '  ' + \$_.Name } | Out-File -Encoding UTF8 checksums-${{ matrix.artifact }}.txt"
+          else
+            shasum -a 256 * > checksums-${{ matrix.artifact }}.txt
+          fi
+
+      - name: 📤 Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: FontMuse-${{ matrix.artifact }}
+          path: releases/
+
+  release:
+    name: 🚀 Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: 📦 Download all artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: releases
+
+      - name: 📝 Create release notes
+        id: release_notes
+        run: |
+          echo "## 🎉 FontMuse Release" > release_notes.md
+          echo "" >> release_notes.md
+          echo "### 📦 Downloads" >> release_notes.md
+          echo "- **Windows**: Download \`FontMuse-windows-portable.zip\` and extract" >> release_notes.md
+          echo "- **Linux**: Download \`FontMuse-linux-portable.AppImage\` and make executable" >> release_notes.md  
+          echo "- **macOS Intel**: Download \`FontMuse-macos-intel-portable.tar.gz\`" >> release_notes.md
+          echo "- **macOS Apple Silicon**: Download \`FontMuse-macos-arm-portable.tar.gz\`" >> release_notes.md
+          echo "" >> release_notes.md
+          echo "### ✨ Features" >> release_notes.md
+          echo "- 👁️ Live font preview with custom text" >> release_notes.md
+          echo "- ⚡ Lightning-fast search and filtering" >> release_notes.md
+          echo "- 📋 Clipboard monitoring for automatic text updates" >> release_notes.md
+          echo "- 🌍 Multi-language support (English/Russian)" >> release_notes.md
+          echo "- 🎨 Light/Dark theme support" >> release_notes.md
+          echo "- 📌 Always-on-top mode for design work" >> release_notes.md
+
+      - name: 🚀 Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: FontMuse ${{ github.ref_name }}
+          body_path: release_notes.md
+          files: |
+            releases/FontMuse-windows/*.zip
+            releases/FontMuse-linux/*.AppImage
+            releases/FontMuse-macos-intel/*.tar.gz
+            releases/FontMuse-macos-arm/*.tar.gz
+            releases/*/checksums-*.txt
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
