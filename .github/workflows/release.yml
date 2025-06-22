@@ -1,7 +1,7 @@
-# .github/workflows/release.yml
-# Финальная, упрощенная и надежная версия workflow
+# .github/workflows/release-with-portable.yml
+# Финальная, исправленная и надежная версия workflow
 
-name: 🚀 Release FontMuse
+name: 🚀 Release with Portable Versions
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ЭТАП 1: Сборка и создание релиза со всеми ассетами
+  # ЭТАП 1: Сборка всех артефактов для всех платформ
   publish-tauri:
     permissions:
       contents: write
@@ -68,8 +68,7 @@ jobs:
       - name: 📦 Install frontend dependencies
         run: pnpm install
 
-      - name: 🔨 Build and Upload All Release Assets
-
+      - name: 🔨 Build and create release draft with Tauri Action
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -121,19 +120,58 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
-  # ЭТАП 2: Публикация релиза
+      - name: 📦 Create and Archive Windows Portable
+        if: matrix.platform == 'windows-latest'
+        shell: pwsh
+        run: |
+          $releaseDir = "src-tauri/target/release"
+          $exePath = (Get-ChildItem -Path $releaseDir -Filter "*.exe" -Recurse | Where-Object { $_.Name -notlike "*updater*" } | Select-Object -First 1).FullName
+          
+          if ($exePath) {
+            Write-Host "✅ Found executable: $exePath"
+            $portableDir = "portable-windows"
+            New-Item -ItemType Directory -Force -Path $portableDir
+            Copy-Item -Path $exePath -Destination "$portableDir\FontMuse.exe"
+            
+            # Создаем README.txt
+            "Run FontMuse.exe to start" | Set-Content -Path "$portableDir\README.txt"
+            
+            # Архивируем папку в zip
+            $zipName = "FontMuse-Windows-Portable.zip"
+            Compress-Archive -Path "$portableDir\*" -DestinationPath $zipName
+            Write-Host "✅ Created portable archive: $zipName"
+          } else {
+            Write-Host "❌ Executable not found in $releaseDir"
+            exit 1
+          }
+
+      - name: 📤 Upload Windows Portable as Build Artifact
+        if: matrix.platform == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-portable-artifact
+          path: FontMuse-Windows-Portable.zip
+
+  # ЭТАП 2: Публикация релиза после всех сборок
   publish-release:
-    needs: publish-tauri # Запускается после всех сборок
+    needs: publish-tauri
     runs-on: ubuntu-22.04
     permissions:
       contents: write
     
     steps:
-      - name: 🎉 Publish the Release
+      - name: 📥 Download portable artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-portable-artifact
+          path: ./portable-dist
 
+      - name: 🎉 Attach Portable Asset and Publish Release
         uses: actions/github-script@v7
         with:
           script: |
+            const fs = require('fs');
+            
             const { data: releases } = await github.rest.repos.listReleases({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -143,12 +181,46 @@ jobs:
             const draftRelease = releases.find(r => r.draft && r.tag_name.startsWith('app-v'));
             
             if (!draftRelease) {
-              console.log('No draft release found to publish. Exiting.');
+              console.log('No draft release found. Exiting.');
               return;
             }
             
-            console.log(`Found draft release: ${draftRelease.tag_name}. Publishing...`);
+            console.log(`Found draft release: ${draftRelease.tag_name}`);
             
+            const assetPath = './portable-dist/FontMuse-Windows-Portable.zip';
+            const assetName = 'FontMuse-Windows-Portable.zip';
+            
+            // Проверяем существующие assets в релизе
+            const { data: existingAssets } = await github.rest.repos.listReleaseAssets({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: draftRelease.id
+            });
+            
+            // Ищем asset с таким же именем
+            const existingAsset = existingAssets.find(asset => asset.name === assetName);
+            
+            if (existingAsset) {
+              console.log(`⚠️ Asset ${assetName} already exists (ID: ${existingAsset.id}). Deleting...`);
+              await github.rest.repos.deleteReleaseAsset({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                asset_id: existingAsset.id
+              });
+              console.log('✅ Existing asset deleted successfully');
+            }
+            
+            console.log(`📤 Uploading asset: ${assetName}`);
+            await github.rest.repos.uploadReleaseAsset({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: draftRelease.id,
+              name: assetName,
+              data: fs.readFileSync(assetPath)
+            });
+            console.log('✅ Asset uploaded successfully');
+            
+            console.log('🚀 Publishing the release...');
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -157,4 +229,4 @@ jobs:
               prerelease: false
             });
             
-            console.log(`✅ Successfully published release ${draftRelease.tag_name}`);
+            console.log(`🎉 Successfully published release ${draftRelease.tag_name}`);
